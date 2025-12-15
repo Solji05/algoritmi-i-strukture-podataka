@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include <stdbool.h>
 
 struct _Node;
 typedef struct _Node * Position;
@@ -19,7 +20,7 @@ void MulPolynom(Position, Position, Position);
 
 void main(void)
 {
-	struct _Cvor P, Q, S, M;	
+	struct _Node P, Q, S, M;	
 	P.Next = NULL;
 	Q.Next = NULL;
 	S.Next = NULL;
@@ -63,7 +64,7 @@ void ReadPolynom(Position P)
 	{
 		while(!feof(stream))
 		{
-			q = (Position)malloc(sizeof(struct _Cvor));
+			q = (Position)malloc(sizeof(struct _Node));
 			fscanf_s(stream, " %d %d", &q->Koeficijent, &q->Exponent);
 
 			if(q->Koeficijent == 0)
@@ -153,7 +154,7 @@ void SumPolynom(Position P, Position Q, Position S)
 	Position q, i;
 	while(P != NULL && Q != NULL)
 	{
-		q = (Position)malloc(sizeof(struct _Cvor));
+		q = (Position)malloc(sizeof(struct _Node));
 
 		if(P->Exponent > Q->Exponent)
 		{
@@ -190,7 +191,7 @@ void SumPolynom(Position P, Position Q, Position S)
 
 	while(i != NULL)
 	{
-		q = (Position)malloc(sizeof(struct _Cvor));
+		q = (Position)malloc(sizeof(struct _Node));
 			
 		q->Exponent = i->Exponent;
 		q->Koeficijent = i->Koeficijent;
@@ -213,7 +214,7 @@ void MulPolynom(Position P, Position Q, Position M)
 		j = Q;
 		while(j != NULL)
 		{
-			q = (Position)malloc(sizeof(struct _Cvor));
+			q = (Position)malloc(sizeof(struct _Node));
 
 			q->Exponent = i->Exponent + j->Exponent;
 			q->Koeficijent = i->Koeficijent * j->Koeficijent;
