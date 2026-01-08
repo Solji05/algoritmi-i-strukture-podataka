@@ -3,138 +3,245 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct Person* Position;
-
 struct Person {
-    char name[64];
-    char surname[64];
+    char name[25];
+    char surname[25];
     int year_of_birth;
+};
+
+typedef struct Node* Position;
+
+struct Node {
+    struct Person element;
     Position next;
 };
 
-void push_to_front(Position);
-void print_list(Position);
-void push_to_back(Position);
+Position create_node();
+int push_to_front(Position, struct Person, Position);
+int push_to_back(Position, struct Person, Position);
+int print_list(Position);
+int delete_list(Position);
+struct Person enter_person_data();
+char* string_input(char*);
 Position find_surname(Position, char[]);
-void delete_element(Position, char[]);
-Position find_previous(Position, char[]);
+int delete_element(Position, Position);
+
 
 int main() {
-    
-    Position head = (Position)malloc(sizeof(struct Person));
-    if (head == NULL) {
-        printf("Greska pri alokaciji memorije za dummy cvor!");
-        return -1;
+    Position p = create_node();
+    if (p == NULL) {
+        return 1;
     }
 
-    head->next = NULL;
+    char input;
 
-    push_to_front(head);
-    push_to_front(head);
-    push_to_front(head);
-    print_list(head->next);
-    push_to_back(head);
-    print_list(head->next);
+    do {
+        printf("Unesi slovo:\n");
+        printf("a) Dodaj element na pocetak liste\n");
+        printf("b) Ispisi listu\n");
+        printf("c) Dodaj element na kraj liste\n");
+        printf("d) Nadi element po prezimenu\n");
+        printf("e) Izbrisi element iz liste\n");
+        printf("x) Izlaz\n");
+        printf("SLOVO: ");
 
-    Position pronaden = find_surname(head->next, "ivic");
-    if (pronaden != NULL) {
-        printf("Osoba je pronadena!\n");
-        printf("Podaci: %s %s %d\n", pronaden->name, 
-            pronaden->surname, pronaden->year_of_birth);
-        printf("***********************\n");
-    }
-    else {
-        printf("Osoba nije pronadena!\n");
-    }
+        scanf(" %c", &input);
 
-    delete_element(head, "ivic");
-    print_list(head->next);
+        switch (input) {
+        case 'a': {
+            struct Person novaOsoba = enter_person_data();
+            Position newNode = create_node();
+            if (newNode != NULL)
+                push_to_front(p, novaOsoba, newNode);
+            break;
+        }
+        case 'b':
+            print_list(p);
+            break;
+        case 'c': {
+            Position node = create_node();
+            if (node != NULL)
+                push_to_back(p, enter_person_data(), node);
+            break;
+        }
+        case 'd': {
+            char* prezime = string_input("Unesi prezime osobe:");
+            if (prezime != NULL) {
+                Position node = find_surname(p, prezime);
+                if (node == NULL)
+                    printf("Osoba nije pronadena!\n");
+                else
+                    printf("Pronadena: %s %s\n", node->element.name, node->element.surname);
+                free(prezime);
+            }
+            break;
+        }
+        case 'e': {
+            char* prezime = string_input("Unesi prezime osobe:");
+            if (prezime != NULL) {
+                Position node = find_surname(p, prezime);
+                if (node == NULL)
+                    printf("Osoba nije pronadena!\n");
+                else
+                    delete_element(p, node);
+                free(prezime);
+            }
+            break;
+        }
+        }
+    } while (input != 'x');
+
+    delete_list(p);
+    free(p);
 
     return 0;
 }
 
-void push_to_front(Position p) {
-    Position novi = (Position)malloc(sizeof(struct Person));
-
-    printf("Unesi ime: ");
-    scanf(" %s", novi->name);
-
-    printf("Unesi prezime: ");
-    scanf(" %s", novi->surname);
-
-    printf("Unesi godinu rodenja: ");
-    scanf(" %d", &novi->year_of_birth);
-
-    novi->next = p->next;
-    p->next = novi;
-
+Position create_node() {
+    struct Node* node = malloc(sizeof(struct Node));
+    if (node == NULL) {
+        printf("ERROR: nije alocirana memorija! \n");
+        return NULL;
+    }
+    node->next = NULL;
+    return node;
 }
 
-void print_list(Position p) {
+int push_to_front(Position p, struct Person osoba, Position node) {
+
+    if (p == NULL || node == NULL) {
+        printf("ERROR, push to front\n");
+        return 1;
+    }
+    node->element = osoba;
+    node->next = p->next;
+    p->next = node;
+    return 0;
+}
+
+int print_list(Position p) {
 
     if (p == NULL) {
-        printf("Prazna lista!\n");
-        return;
+        printf("ERROR, print list\n");
+        return 1;
     }
 
-    while (p != NULL) {
-        printf("Ime: %s\n", p->name);
-        printf("Prezime: %s\n", p->surname);
-        printf("Godina rodenja: %d\n", p->year_of_birth);
-        printf("***********************\n");
-        p = p->next;
+    Position current = p->next;
+    
+    if (current == NULL) {
+        printf("Lista je prazna.\n");
+        return 0;
     }
 
+    int i = 1;
+
+    while (current != NULL) {
+        printf("Osoba %d: %s %s %d\n", i++, current->element.name, 
+            current->element.surname, current->element.year_of_birth);
+
+        current = current->next;
+    }
+    return 0;
 }
 
-void push_to_back(Position p) {
+int push_to_back(Position p, struct Person osoba, Position node) {
 
-    while (p->next != NULL) {
-        p = p->next;
+    if (p == NULL || node == NULL) {
+        printf("ERROR, push to back\n");
+        return 1;
+    }
+    node->element = osoba;
+    node->next = NULL;
+
+    Position current = p;
+    while (current->next != NULL) {
+        current = current->next;
     }
 
-    push_to_front(p);
+    current->next = node;
+    return 0;
 }
 
 Position find_surname(Position p, char prezime[]) {
     
-    while (p != NULL && strcmp(p->surname, prezime) != 0) {
-        p = p->next;
-    }
-
-    return p;
-}
-
-void delete_element(Position p, char prezime[]) {
-    
-    Position prev;
-
-    prev = find_previous(p, prezime);
-    
-    if (prev == NULL) {
-        printf("Ne postoji element u vezanoj listi s tim prezimenom!\n");
-        return;
-    }
-    else {
-        p = prev->next;
-        prev->next = p->next;
-        free(p);
-    }
-}
-
-Position find_previous(Position p, char prezime[]) {
-
-    Position prev = p;
-    p = p->next;
-
-    while (p != NULL && strcmp(p->surname, prezime) != 0) {
-        prev = p;
-        p = p->next;
-    }
-
-    if (p == NULL) {
+    if (p == NULL || prezime == NULL) {
+        printf("ERROR, find surname\n");
         return NULL;
     }
 
-    return prev;
+    Position currentNode = p->next;
+    while (currentNode != NULL) {
+        if (strcmp(currentNode->element.surname, prezime) == 0)
+            return currentNode;
+        currentNode = currentNode->next;
+    }
+    return NULL;
+
+}
+
+int delete_element(Position p, Position node) {
+    
+    if (p == NULL || node == NULL) {
+        printf("ERROR, delete element\n");
+        return 1;
+    }
+
+    Position currentNode = p;
+    while (currentNode->next != NULL) {
+        if (currentNode->next == node) {
+            currentNode->next = node->next;
+            free(node);
+            printf("Element izbrisan!\n");
+            return 0;
+        }
+        currentNode = currentNode->next;
+    }
+
+    printf("Osoba nije pronadena!\n");
+    return 1;
+
+}
+
+int delete_list(Position p) {
+    if (p == NULL) {
+        printf("ERROR, delete list\n");
+        return 1;
+    }
+
+    Position current = p->next;
+    while (current != NULL) {
+        Position next = current->next;
+        free(current);
+        current = next;
+    }
+    p->next = NULL;
+    return 0;
+}
+
+struct Person enter_person_data() {
+    struct Person osoba;
+    printf("Unesi ime osobe: ");
+    scanf("%24s", osoba.name);
+
+    printf("Unesi prezime osobe: ");
+    scanf("%24s", osoba.surname);
+
+    printf("Unesi godinu rodenja: ");
+    while (scanf("%d", &osoba.year_of_birth) != 1) {
+        printf("Greska! Pokusaj ponovo: ");
+        while (getchar() != '\n');
+    }
+
+    return osoba;
+}
+
+char* string_input(char* output) {
+    printf("%s ", output);
+    char* string = malloc(25 * sizeof(char));
+    if (string == NULL) {
+        printf("ERROR, alokacija memorije\n");
+        return NULL;
+    }
+    scanf("%24s", string);
+    return string;
 }
