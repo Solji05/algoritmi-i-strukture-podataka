@@ -60,72 +60,114 @@ int main() {
         case 'a': {
             struct Person novaOsoba = enter_person_data();
             Position newNode = create_node();
-            if (newNode != NULL)
-                push_to_front(p, novaOsoba, newNode);
+            if (newNode == NULL) {
+                printf("ERROR: nije alocirana memorija!\n");
+                delete_list(p);
+                free(p);
+                return 1;
+            }
+            push_to_front(p, novaOsoba, newNode);
             break;
         }
-        case 'b':
-            print_list(p);
-            break;
+
         case 'c': {
             Position node = create_node();
-            if (node != NULL)
-                push_to_back(p, enter_person_data(), node);
-            break;
-        }
-        case 'd': {
-            char* prezime = string_input("Unesi prezime osobe:");
-            if (prezime != NULL) {
-                Position node = find_surname(p, prezime);
-                if (node == NULL)
-                    printf("Osoba nije pronadena!\n");
-                else
-                    printf("Pronadena: %s %s\n", node->element.name, node->element.surname);
-                free(prezime);
+            if (node == NULL) {
+                printf("ERROR: nije alocirana memorija!\n");
+                delete_list(p);
+                free(p);
+                return 1;
             }
+            push_to_back(p, enter_person_data(), node);
             break;
         }
-        case 'e': {
-            char* prezime = string_input("Unesi prezime osobe za brisanje:");
-            if (prezime != NULL) {
-                Position node = find_surname(p, prezime);
-                if (node == NULL)
-                    printf("Osoba nije pronadena!\n");
-                else
-                    delete_element(p, node);
-                free(prezime);
-            }
-            break;
-        }
+
         case 'f': {
             int index;
             printf("Unesi indeks: ");
             scanf("%d", &index);
+
             Position node = create_node();
-            if (node != NULL)
-                add_after_node(p, index, enter_person_data(), node);
+            if (node == NULL) {
+                printf("ERROR: nije alocirana memorija!\n");
+                delete_list(p);
+                free(p);
+                return 1;
+            }
+
+            if (add_after_node(p, index, enter_person_data(), node) != 0) {
+                delete_list(p);
+                free(p);
+                return 1;
+            }
             break;
         }
+
         case 'g': {
             int index;
             printf("Unesi indeks: ");
             scanf("%d", &index);
+
             Position node = create_node();
-            if (node != NULL)
-                add_before_node(p, index, enter_person_data(), node);
-            break;
-        }
-        case 'h': {
-            write_list_to_file(p, "test.txt");
-            break;
-        }
-        case 'i': {
-            Position readP = read_list_from_file("test.txt");
-            if (readP != NULL) {
+            if (node == NULL) {
+                printf("ERROR: nije alocirana memorija (add before)!\n");
                 delete_list(p);
                 free(p);
-                p = readP;
+                return 1;
             }
+
+            if (add_before_node(p, index, enter_person_data(), node) != 0) {
+                delete_list(p);
+                free(p);
+                return 1;
+            }
+            break;
+        }
+
+        case 'h': {
+            char* filename = string_input("Unesi naziv datoteke:");
+            if (filename == NULL) {
+                printf("ERROR, neuspjela alokacija za naziv datoteke!\n");
+                delete_list(p);
+                free(p);
+                return 1;
+            }
+
+            if (write_list_to_file(p, filename) != 0) {
+                printf("ERROR, greska pri radu s datotekom, upis!\n");
+                free(filename);
+                delete_list(p);
+                free(p);
+                return 1;
+            }
+
+            free(filename);
+            break;
+        }
+
+        case 'i': {
+            char* filename = string_input("Unesi naziv datoteke:");
+            if (filename == NULL) {
+                printf("ERROR, neuspjela alokacija za naziv datoteke!\n");
+                delete_list(p);
+                free(p);
+                return 1;
+            }
+
+            Position readP = read_list_from_file(filename);
+            if (readP == NULL) {
+                printf("ERROR:, greska pri citanju liste iz datoteke!\n");
+                free(filename);
+                delete_list(p);
+                free(p);
+                return 1;
+            }
+
+            free(filename);
+
+            delete_list(p);
+            free(p);
+            p = readP;
             break;
         }
 
@@ -280,12 +322,12 @@ struct Person enter_person_data() {
 
 char* string_input(char* output) {
     printf("%s ", output);
-    char* string = malloc(25 * sizeof(char));
+    char* string = malloc(256 * sizeof(char));
     if (string == NULL) {
         printf("ERROR, alokacija memorije\n");
         return NULL;
     }
-    scanf("%24s", string);
+    scanf("%255s", string);
     return string;
 }
 
@@ -395,6 +437,8 @@ Position read_list_from_file(char filename[]) {
 
     Position p = create_node();
     if (p == NULL) {
+        printf("ERROR, nije alocirana memorija");
+        fclose(fp);
         return NULL;
     }
         
@@ -402,7 +446,17 @@ Position read_list_from_file(char filename[]) {
     struct Person osoba = { "" };
     while (fscanf(fp, "Osoba %d: %24s %24s %d\n",
         &id, osoba.name, osoba.surname, &osoba.year_of_birth) == 4) {
-        push_to_back(p, osoba, create_node());
+
+        Position node = create_node();
+        if (node == NULL) {
+            printf("ERROR, nije alocirana memorija!\n");
+            fclose(fp);
+            delete_list(p);
+            free(p);
+            return NULL;
+        }
+
+        push_to_back(p, osoba, node);
     }
     fclose(fp);
     printf("Uspjesno ucitana lista iz datoteke!\n");
