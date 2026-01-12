@@ -70,6 +70,10 @@ int main() {
             break;
         }
 
+        case 'b':
+            print_list(p);
+            break;
+
         case 'c': {
             Position node = create_node();
             if (node == NULL) {
@@ -79,6 +83,34 @@ int main() {
                 return 1;
             }
             push_to_back(p, enter_person_data(), node);
+            break;
+        }
+
+        case 'd': {
+            char* prezime = string_input("Unesi prezime osobe:");
+            if (prezime == NULL) {
+                printf("ERROR: alokacija!\n");
+                delete_list(p); free(p);
+                return 1;
+            }
+            Position node = find_surname(p, prezime);
+            if (node == NULL) printf("Osoba nije pronadena!\n");
+            else printf("Pronadena: %s %s %d\n", node->element.name, node->element.surname, node->element.year_of_birth);
+            free(prezime);
+            break;
+        }
+
+        case 'e': {
+            char* prezime = string_input("Unesi prezime osobe za brisanje:");
+            if (prezime == NULL) {
+                printf("ERROR: alokacija!\n");
+                delete_list(p); free(p);
+                return 1;
+            }
+            Position node = find_surname(p, prezime);
+            if (node == NULL) printf("Osoba nije pronadena!\n");
+            else delete_element(p, node);
+            free(prezime);
             break;
         }
 
@@ -96,6 +128,7 @@ int main() {
             }
 
             if (add_after_node(p, index, enter_person_data(), node) != 0) {
+                printf("ERROR, case f");
                 delete_list(p);
                 free(p);
                 return 1;
@@ -117,6 +150,7 @@ int main() {
             }
 
             if (add_before_node(p, index, enter_person_data(), node) != 0) {
+                printf("ERROR, case g");
                 delete_list(p);
                 free(p);
                 return 1;
@@ -353,7 +387,7 @@ int add_after_node(Position p, int targetIndex, struct Person osoba, Position ne
     }
 
     Position pointer = p->next;
-    int i = 0;
+    int i = 1;
     while (pointer != NULL) {
         if (i == targetIndex) {
             newNode->element = osoba;
@@ -378,7 +412,7 @@ int add_before_node(Position p, int targetIndex, struct Person osoba, Position n
     }
 
     Position pointer = p;
-    int i = 0;
+    int i = 1;
     while (pointer->next != NULL) {
         if (i == targetIndex) {
             newNode->element = osoba;
