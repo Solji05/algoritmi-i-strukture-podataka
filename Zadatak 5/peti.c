@@ -29,6 +29,16 @@ int main() {
 	Position pStack = create_node();
 	Position pQueue = create_node();
 	if (pStack == NULL || pQueue == NULL) {
+		printf("ERROR: neuspjela alokacija stack ili queue\n");
+
+		if (pStack != NULL) {
+			delete_list(pStack);
+			free(pStack);
+		}
+		if (pQueue != NULL) {
+			delete_list(pQueue);
+			free(pQueue);
+		}
 		return 1;
 	}
 
@@ -49,31 +59,80 @@ int main() {
 				case 'a':
 					printf("Unesi broj: ");
 					scanf(" %d", &broj);
+
 					if (input == 'a') {
-						push(pStack, broj);
+						if (push(pStack, broj) != 0) {
+							printf("ERROR: push nije uspia!\n");
+							delete_list(pStack); 
+							free(pStack);
+							delete_list(pQueue); 
+							free(pQueue);
+							return 1;
+						}
 					}
 					else {
-						enqueue(pQueue, broj);
+						if (enqueue(pQueue, broj) != 0) {
+							printf("ERROR: enqueue nije uspia!\n");
+							delete_list(pStack); 
+							free(pStack);
+							delete_list(pQueue); 
+							free(pQueue);
+							return 1;
+						}
 					}
 					break;
 
 				case 'b':
 					if (input == 'a') {
-						if (pop(pStack) == 0) printf("Element uklonjen sa Stacka.\n");
+						int r = pop(pStack);
+						if (r == 0) printf("Element uklonjen sa stacka.\n");
+						else if (r == 1) {
+							printf("ERROR: pop nije uspio!\n");
+							delete_list(pStack); 
+							free(pStack);
+							delete_list(pQueue); 
+							free(pQueue);
+							return 1;
+						}
 					}
 					else {
-						if (dequeue(pQueue) == 0) printf("Element uklonjen iz Queuea.\n");
+						int r = dequeue(pQueue);
+						if (r == 0) printf("Element uklonjen iz queuea.\n");
+						else if (r == 1) {
+							printf("ERROR: dequeue nije uspio!\n");
+							delete_list(pStack); 
+							free(pStack);
+							delete_list(pQueue); 
+							free(pQueue);
+							return 1;
+						}
 					}
 					break;
 
 				case 'c':
 					broj = rand() % (100 - 10 + 1) + 10;
+
 					if (input == 'a') {
-						push(pStack, broj);
+						if (push(pStack, broj) != 0) {
+							printf("ERROR: random push nije uspio!\n");
+							delete_list(pStack); 
+							free(pStack);
+							delete_list(pQueue); 
+							free(pQueue);
+							return 1;
+						}
 					}
 					else {
-						enqueue(pQueue, broj);
+						if (enqueue(pQueue, broj) != 0) {
+							printf("ERROR: random enqueue nije uspio!\n");
+							delete_list(pStack); 
+							free(pStack);
+							delete_list(pQueue); 
+							free(pQueue);
+							return 1;
+						}
 					}
+
 					printf("Dodan broj: %d\n", broj);
 					break;
 
