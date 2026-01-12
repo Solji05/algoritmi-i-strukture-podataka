@@ -271,6 +271,7 @@ Position read_list() {
 
     Position header = create_node();
     if (header == NULL) {
+        printf("ERROR, read list alokacija");
         fclose(file);
         return NULL;
     }
