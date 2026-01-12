@@ -23,6 +23,7 @@ int already_in_list(Position, int);
 Position unija(Position*);
 Position presjek(Position*);
 Position read_sorted_list();
+void cleanup(Position heads[], int);
 
 
 int main()
@@ -40,7 +41,7 @@ int main()
     char unos = 's';
     do
     {
-        printf("\nUnesi znak:\n+) Zbrajanje polinoma\n*) Mnozenje polinoma\nx) Izlaz\n");
+        printf("\nUnesi znak:\n+) unija\n*) presjek\nx) Izlaz\n");
         printf("Odabir: ");
         scanf(" %c", &unos);
 
@@ -50,9 +51,13 @@ int main()
         switch (unos)
         {
         case '+': {
-            newHead = unija(&heads);
-            if (newHead == NULL)
-                unos = 0;
+            newHead = unija(heads);
+            if (newHead == NULL) {
+                printf("ERROR: unija nije uspila!\n");
+                cleanup(heads, 2);
+                return 1;
+            }
+            
             printf("Nova lista: ");
             print_list(newHead);
             delete_list(newHead);
@@ -60,9 +65,13 @@ int main()
             break;
         }
         case '*': {
-            newHead = presjek(&heads);
-            if (newHead == NULL)
-                unos = 0;
+            newHead = presjek(heads);
+            if (newHead == NULL) {
+                printf("ERROR: presjek nije uspia!\n");
+                cleanup(heads, 2);
+                return 1;
+            }
+                
             printf("Nova lista: ");
             print_list(newHead);
             delete_list(newHead);
@@ -187,7 +196,7 @@ int add_after_node(Position p, int targetIndex, int num, Position newNode) {
     }
 
     Position pointer = p->next;
-    int i = 0;
+    int i = 1;
     while (pointer != NULL) {
         if (i == targetIndex) {
             newNode->element = num;
@@ -212,7 +221,7 @@ int add_before_node(Position p, int targetIndex, int num, Position newNode) {
     }
 
     Position pointer = p;
-    int i = 0;
+    int i = 1;
     while (pointer->next != NULL) {
         if (i == targetIndex) {
             newNode->element = num;
@@ -314,16 +323,19 @@ Position unija(Position* p) {
         printf("ERROR, unija 2");
         return NULL;
     }
-    Position newNode;
-    Position current = NULL;
+
     for (int i = 0; i < 2; i++) {
         Position current = p[i]->next;
         while (current != NULL) {
             if (already_in_list(newp, current->element) == 0) {
                 Position newNode = create_node();
-                if (newNode != NULL) {
-                    add_sorted_node(newp, current->element, newNode);
+                if (newNode == NULL) {
+                    printf("ERROR: alokacija cvora u uniji\n");
+                    delete_list(newp);
+                    free(newp);
+                    return NULL;
                 }
+                add_sorted_node(newp, current->element, newNode);
             }
             current = current->next;
         }
@@ -332,32 +344,37 @@ Position unija(Position* p) {
 }
 
 Position presjek(Position* p) {
-    if (p == NULL)
-    {
-        printf("ERROR, funkcija presjek");
+    if (p == NULL || p[0] == NULL || p[1] == NULL) {
+        printf("ERROR, presjek\n");
         return NULL;
     }
+
     Position newp = create_node();
     if (newp == NULL) {
-        printf("ERROR, alokacija cvora u funkciji presjek");
+        printf("ERROR, alokacija cvora u funkciji presjek\n");
         return NULL;
     }
-    Position newNode;
-    Position current = NULL;
-    for (int i = 1; i < 2; i++) {
-        Position current = p[i]->next;
-        while (current != NULL) {
-            if (already_in_list(p[0], current->element) == 1 && already_in_list(newp, current->element) == 0) {
-                Position newNode = create_node();
-                if (newNode != NULL) {
-                    add_sorted_node(newp, current->element, newNode);
-                }
+
+    Position current = p[1]->next;
+    while (current != NULL) {
+        if (already_in_list(p[0], current->element) == 1 &&
+            already_in_list(newp, current->element) == 0) {
+
+            Position newNode = create_node();
+            if (newNode == NULL) {
+                printf("ERROR: alokacija cvora u presjek\n");
+                delete_list(newp);
+                free(newp);
+                return NULL;
             }
-            current = current->next;
+            add_sorted_node(newp, current->element, newNode);
         }
+        current = current->next;
     }
+
     return newp;
 }
+
 
 Position read_sorted_list() {
     FILE* file = NULL;
@@ -374,7 +391,11 @@ Position read_sorted_list() {
 
     Position p = create_node();
     if (p == NULL)
+    {
+        fclose(file);
         return NULL;
+    }
+        
 
     int num;
     Position node = NULL;
@@ -382,6 +403,7 @@ Position read_sorted_list() {
     {
         node = create_node();
         if (node == NULL) {
+            fclose(file);
             delete_list(p);
             free(p);
             return NULL;
@@ -391,4 +413,14 @@ Position read_sorted_list() {
     fclose(file);
 
     return p;
+}
+
+void cleanup(Position heads[], int count) {
+    for (int i = 0; i < count; i++) {
+        if (heads[i] != NULL) {
+            delete_list(heads[i]);
+            free(heads[i]);
+            heads[i] = NULL;
+        }
+    }
 }
