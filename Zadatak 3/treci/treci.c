@@ -23,9 +23,8 @@ int delete_list(Position);
 int delete_node(Position, Position);
 int add_after_node(Position, int, struct Term, Position);
 int add_before_node(Position, int, struct Term, Position);
-Position read_list(FILE*);
+Position read_list();
 int add_sorted_node(Position, struct Term, Position);
-FILE* file_input();
 int polynomial_sort(Position*);
 int polynomial_clean(Position*);
 Position join_lists(Position*, int);
@@ -34,36 +33,26 @@ Position multiply(Position*, int);
 int main() {
     int n = 0;
 
-    do {
+    do
+    {
         printf("Unesi broj polinoma: ");
-        if (scanf(" %d", &n) != 1) {
-            while (getchar() != '\n');
-            continue;
-        }
+        scanf_s(" %d", &n);
     } while (n <= 0);
 
-    FILE** files = malloc(sizeof(FILE*) * n);
+
     Position* headers = malloc(sizeof(Position) * n);
 
-    for (int i = 0; i < n; i++) {
-        printf("Polinom %d. ", i + 1);
-        files[i] = file_input();
-        if (files[i] == NULL) {
+    for (int i = 0; i < n; i++)
+    {
+        printf("%d ", i + 1);
+        headers[i] = read_list();
+        if (headers[i] == NULL)
             i--;
-        }
-    }
-
-    for (int i = 0; i < n; i++) {
-        headers[i] = read_list(files[i]);
-        if (headers[i] == NULL) {
-            printf("ERROR, Problem pri citanju polinoma %d\n", i + 1);
-            return 1;
-        }
     }
 
     char input = '0';
     do {
-        printf("\nUnesi znak za trazenu radnju:\n+) Zbrajanje polinoma\n*) Mnozenje polinoma\nx) Prekid programa\n");
+        printf("\nUnesi znak:\n+) Zbrajanje polinoma\n*) Mnozenje polinoma\nx) Izlaz\n");
         printf("Odabir: ");
         scanf(" %c", &input);
 
@@ -99,17 +88,17 @@ int main() {
         }
     } while (input != 'x');
 
-    for (int i = 0; i < n; i++) {
-        if (files[i] != NULL) fclose(files[i]);
+    for (int i = 0; i < n; i++)
+    {
         if (headers[i] != NULL) {
             delete_list(headers[i]);
             free(headers[i]);
         }
     }
-    free(files);
     free(headers);
     return 0;
 }
+
 
 Position create_node() {
     Position node = malloc(sizeof(struct Node));
@@ -260,25 +249,40 @@ int add_before_node(Position p, int targetIndex, struct Term term, Position newN
     return 1;
 }
 
-Position read_list(FILE* file) {
+Position read_list() {
 
-    rewind(file);
+    FILE* file = NULL;
+    char fileName[40] = "";
+    printf("Unesi ime datoteke: ");
+    scanf("%39s", fileName);
+
+    fopen_s(&file, fileName, "r");
 
     if (file == NULL) {
         printf("ERROR, otvaranje datoteke\n");
         return NULL;
     }
 
-    Position header = create_node();
-    if (header == NULL)
-        return NULL;
 
-    int id = 0;
+    Position header = create_node();
+    if (header == NULL) {
+        fclose(file);
+        return NULL;
+    }
+       
+
+    
     struct Term term;
     while (fscanf(file, "%f %f", &term.koef, &term.exp) == 2)
     {
-        add_to_end(header, term, create_node());
+        Position newNode = create_node();
+        if (newNode != NULL) {
+            add_sorted_node(header, term, newNode);
+        }
+       
     }
+
+    fclose(file);
 
     return header;
 }
@@ -302,20 +306,6 @@ int add_sorted_node(Position p, struct Term term, Position newNode) {
     current->next = newNode;
 
     return 0;
-}
-
-FILE* file_input() {
-    FILE* file = NULL;
-    char fileName[40] = "";
-    printf("Unesi ime datoteke: ");
-    scanf("%39s", fileName);
-
-    fopen_s(&file, fileName, "r");
-
-    if (file == NULL) {
-        printf("ERROR, otvaranje datoteke\n");
-    }
-    return file;
 }
 
 int polynomial_sort(Position* p) {
