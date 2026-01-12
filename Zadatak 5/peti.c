@@ -10,7 +10,96 @@ struct Node {
 	Position next;
 };
 
-Position crate_node() {
+Position create_node();
+int print_list(Position);
+int push(Position, int);
+int pop(Position);
+int enqueue(Position, int);
+int dequeue(Position);
+int delete_list(Position);
+
+int main() {
+
+	srand((unsigned int)time(NULL));
+
+	char input = ' ';
+	char action = ' ';
+	int broj = 0;
+
+	Position pStack = create_node();
+	Position pQueue = create_node();
+	if (pStack == NULL || pQueue == NULL) {
+		return 1;
+	}
+
+	do {
+		printf("\nIzaberi:\na) Stack\nb) Queue\nx) Exit\nOdabir: ");
+		scanf(" %c", &input);
+
+		if (input == 'a' || input == 'b') {
+			do {
+				if (input == 'a')
+					printf("\nSTACK: a) Push, b) pop, c) Random, d) Print, x) Back: ");
+				else
+					printf("\nQUEUE: a) Enqueue, b) Dequeue, c) Random, d) Print, x) Back: ");
+
+				scanf(" %c", &action);
+
+				switch (action) {
+				case 'a':
+					printf("Unesi broj: ");
+					scanf(" %d", &broj);
+					if (input == 'a') {
+						push(pStack, broj);
+					}
+					else {
+						enqueue(pQueue, broj);
+					}
+					break;
+
+				case 'b':
+					if (input == 'a') {
+						if (pop(pStack) == 0) printf("Element uklonjen sa Stacka.\n");
+					}
+					else {
+						if (dequeue(pQueue) == 0) printf("Element uklonjen iz Queuea.\n");
+					}
+					break;
+
+				case 'c':
+					broj = rand() % (100 - 10 + 1) + 10;
+					if (input == 'a') {
+						push(pStack, broj);
+					}
+					else {
+						enqueue(pQueue, broj);
+					}
+					printf("Dodan broj: %d\n", broj);
+					break;
+
+				case 'd':
+					if (input == 'a') {
+						printf("Sadrzaj STACKA: ");
+						print_list(pStack);
+					}
+					else {
+						printf("Sadrzaj QUEUEA: ");
+						print_list(pQueue);
+					}
+					break;
+				}
+			} while (action != 'x');
+		}
+	} while (input != 'x');
+
+	delete_list(pStack);
+	free(pStack);
+	delete_list(pQueue);
+	free(pQueue);
+	return 0;
+}
+
+Position create_node() {
 	Position node = malloc(sizeof(struct Node));
 	if (node == NULL) {
 		printf("ERROR, alokacija cvora\n");
@@ -21,7 +110,7 @@ Position crate_node() {
 }
 
 int push(Position p, int broj) {
-	Position node = crate_node();
+	Position node = create_node();
 	if (node == NULL) {
 		printf("ERROR, alokacija push\n");
 		return 2;
@@ -76,7 +165,7 @@ int print_list(Position p) {
 }
 
 int enqueue(Position p, int broj) {
-	Position newNode = crate_node();
+	Position newNode = create_node();
 	if (newNode == NULL) {
 		printf("ERROR, enqueue");
 		return 2;
@@ -110,7 +199,6 @@ int dequeue(Position p) {
 	}
 }
 
-
 int delete_list(Position p) {
 	if (p == NULL) {
 		printf("ERROR, delete list pointer\n");
@@ -127,71 +215,3 @@ int delete_list(Position p) {
 	return 0;
 }
 
-int main() {
-
-	srand((unsigned int)time(NULL));
-
-	char input = ' ';
-	char action = ' ';
-	int broj = 0;
-
-	Position p = crate_node();
-
-	if (p == NULL) return 1;
-
-	do {
-		printf("\nIzaberi:\na) Stack\nb) Queue\nx) Exit\nOdabir: ");
-		scanf(" %c", &input);
-
-		if (input == 'a' || input == 'b') {
-			do {
-				if (input == 'a')
-					printf("\na) Push, b) pop, c) Random, d) Print, x) Back: ");
-				else
-					printf("\na) Enqueue, b) Dequeue, c) Random, d) Print, x) Back: ");
-
-				scanf(" %c", &action);
-
-				switch (action) {
-				case 'a':
-					printf("Unesi broj: ");
-					scanf(" %d", &broj);
-					if (input == 'a') {
-						push(p, broj);
-					}
-					else {
-						enqueue(p, broj);
-					}
-					break;
-
-				case 'b':
-					if (pop(p) == 0) {
-						printf("Element uklonjen.\n");
-					}
-					
-					break;
-
-				case 'c':
-					broj = rand() % (100 - 10 + 1) + 10;
-					if (input == 'a') {
-						push(p, broj);
-					}
-					else {
-						enqueue(p, broj);
-					}
-					printf("Dodan broj: %d\n", broj);
-					break;
-
-				case 'd':
-					print_list(p);
-					break;
-				}
-			} while (action != 'x');
-
-			delete_list(p);
-		}
-	} while (input != 'x');
-
-	free(p);
-	return 0;
-}
