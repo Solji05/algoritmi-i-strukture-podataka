@@ -31,8 +31,19 @@ int main() {
 	Position pStack = create_node();
 	Position pQueue = create_node();
 
-	if (pStack == NULL || pQueue == NULL)
+	if (pStack == NULL || pQueue == NULL) {
+		printf("ERROR: neuspjela alokacija stacka ili queuea!\n");
+
+		if (pStack != NULL) {
+			deleteList(pStack);
+			free(pStack);
+		}
+		if (pQueue != NULL) {
+			deleteList(pQueue);
+			free(pQueue);
+		}
 		return 1;
+	}
 
 	do {
 		printf("Odaberi:\na) Cirkularni stack\nb) Queue s prioritetom\nx) Exit\n");
@@ -46,15 +57,38 @@ int main() {
 				printf("\nSTACK - Odaberi: a) Push b) Pop c) Random d) Ispis x) Exit\n");
 				scanf(" %c", &action);
 				if (action == 'a') {
-					printf("Unesi broj: "); scanf("%d", &num);
-					push(pStack, num);
+					printf("Unesi broj: "); 
+					scanf("%d", &num);
+					if (push(pStack, num) != 0) {
+						printf("ERROR, push nije uspio\n");
+						deleteList(pStack); 
+						free(pStack);
+						deleteList(pQueue); 
+						free(pQueue);
+						return 1;
+					}
+
 				}
 				else if (action == 'b') {
-					pop(pStack);
+					if (pop(pStack) != 0) {
+						printf("ERROR, pop nije uspio\n");
+						deleteList(pStack); 
+						free(pStack);
+						deleteList(pQueue); 
+						free(pQueue);
+						return 1;
+					}
 				}
 				else if (action == 'c') {
-					num = rand() % 91 + 10;
-					push(pStack, num);
+					num = rand() % (100 - 90 + 1) + 10;
+					if (push(pStack, num) != 0) {
+						printf("ERROR, random nije uspio\n");
+						deleteList(pStack); 
+						free(pStack);
+						deleteList(pQueue); 
+						free(pQueue);
+						return 1;
+					}
 				}
 				else if (action == 'd') {
 					print_list(pStack);
@@ -68,14 +102,35 @@ int main() {
 				scanf(" %c", &action);
 				if (action == 'a') {
 					printf("Unesi broj: "); scanf("%d", &num);
-					enqueue(pQueue, num);
+					if (enqueue(pQueue, num) < 0) {
+						printf("ERROR, enqueue nie uspio\n");
+						deleteList(pStack); 
+						free(pStack);
+						deleteList(pQueue); 
+						free(pQueue);
+						return 1;
+					}
 				}
 				else if (action == 'b') {
-					dequeue(pQueue);
+					if (dequeue(pQueue) != 0) {
+						printf("ERROR, dequeue nije uspio\n");
+						deleteList(pStack); 
+						free(pStack);
+						deleteList(pQueue); 
+						free(pQueue);
+						return 1;
+					}
 				}
 				else if (action == 'c') {
-					num = rand() % 100 - 10 + 1 + 10;
-					enqueue(pQueue, num);
+					num = rand() % (100 - 10 + 1) + 10;
+					if (enqueue(pQueue, num) < 0) {
+						printf("ERROR, random enqueue nije uspio\n");
+						deleteList(pStack); 
+						free(pStack);
+						deleteList(pQueue); 
+						free(pQueue);
+						return 1;
+					}
 				}
 				else if (action == 'd') {
 					print_list(pQueue);
@@ -86,9 +141,9 @@ int main() {
 		}
 	} while (input != 'x');
 
-	deleteList(pStack); 
+	deleteList(pStack);
 	free(pStack);
-	deleteList(pQueue); 
+	deleteList(pQueue);
 	free(pQueue);
 	return 0;
 }
@@ -99,7 +154,7 @@ Position create_node() {
 		printf("ERROR, alokacija cvora\n");
 		return NULL;
 	}
-	
+
 	node->priority = rand() % (5 - 1 + 1) + 1;
 	node->next = NULL;
 	return node;
@@ -224,4 +279,3 @@ int deleteList(Position p) {
 	p->next = NULL;
 	return 0;
 }
-
