@@ -42,6 +42,11 @@ int main() {
 
     Position* headers = malloc(sizeof(Position) * n);
 
+    if (headers == NULL) {
+        printf("ERROR: alokacija memorije headers\n");
+        return 1;
+    }
+
     for (int i = 0; i < n; i++)
     {
         printf("%d ", i + 1);
@@ -276,10 +281,15 @@ Position read_list() {
     while (fscanf(file, "%f %f", &term.koef, &term.exp) == 2)
     {
         Position newNode = create_node();
-        if (newNode != NULL) {
-            add_sorted_node(header, term, newNode);
+        if (newNode == NULL) {
+            printf("ERROR: alokacija memorije u read list\n");
+            fclose(file);
+            delete_list(header);
+            free(header);
+            return NULL;
         }
-       
+
+        add_sorted_node(header, term, newNode);
     }
 
     fclose(file);
