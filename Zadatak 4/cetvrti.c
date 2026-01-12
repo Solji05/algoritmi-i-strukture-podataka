@@ -20,79 +20,72 @@ int add_before_node(Position, int, int, Position);
 int add_sorted_node(Position, int, Position);
 int polynomial_sort(Position*);
 int already_in_list(Position, int);
-Position unija(Position*, int);
-Position presjek(Position*, int);
-Position read_sorted_list(FILE*);
-FILE* file_input();
+Position unija(Position*);
+Position presjek(Position*);
+Position read_sorted_list();
 
-int main() {
-    FILE* files[2] = { NULL };
-    Position p[2];
+
+int main()
+{
+    Position heads[2];
 
     for (int i = 0; i < 2; i++)
     {
         printf("%d ", i + 1);
-        files[i] = file_input();
-        if (files[i] == NULL)
+        heads[i] = read_sorted_list();
+        if (heads[i] == NULL)
             i--;
     }
 
-    for (int i = 0; i < 2; i++)
-    {
-        p[i] = read_sorted_list(files[i]);
-        if (p[i] == NULL) {
-            printf("ERROR, ucitavanje liste iz datoteke");
-            return 1;
-        }
-    }
-    char input = '0';
+    char unos = 's';
     do
     {
-        printf("\nUnesi znak za trazenu radnju:\n1) Unija brojeva \n2) Presjek brojeva \nx) Prekid programa\n");
-        scanf(" %c", &input);
+        printf("\nUnesi znak:\n+) Zbrajanje polinoma\n*) Mnozenje polinoma\nx) Izlaz\n");
+        printf("Odabir: ");
+        scanf(" %c", &unos);
 
 
-        Position newp = NULL;
+        Position newHead = NULL;
 
-        switch (input)
+        switch (unos)
         {
-        case '1': {
-            newp = unija(p, 2);
-            if (newp == NULL)
-                input = 'x';
+        case '+': {
+            newHead = unija(&heads);
+            if (newHead == NULL)
+                unos = 0;
             printf("Nova lista: ");
-            print_list(newp);
-            delete_list(newp);
-            free(newp);
+            print_list(newHead);
+            delete_list(newHead);
+            free(newHead);
             break;
         }
-        case '2': {
-            newp = presjek(p, 2);
-            if (newp == NULL)
-                input = 'x';
+        case '*': {
+            newHead = presjek(&heads);
+            if (newHead == NULL)
+                unos = 0;
             printf("Nova lista: ");
-            print_list(newp);
-            delete_list(newp);
-            free(newp);
+            print_list(newHead);
+            delete_list(newHead);
+            free(newHead);
             break;
         }
+        case 'x':
+            break;
         default:
+            printf("Nepoznata radnja!\n");
             break;
         }
 
-    } while (input != 'x');
+    } while (unos != 'x');
 
     for (int i = 0; i < 2; i++)
     {
-        if (files[i] != NULL)
-            fclose(files[i]);
-        if (p[i] != NULL) {
-            delete_list(p[i]);
-            free(p[i]);
+        if (heads[i] != NULL) {
+            delete_list(heads[i]);
+            free(heads[i]);
         }
     }
     return 0;
-
 }
 
 Position create_node() {
@@ -291,7 +284,7 @@ int polynomial_sort(Position* p) {
     return 0;
 }
 
-int already_in_list(Position p, int number) {
+int already_in_list(Position p, int unos) {
     if (p == NULL)
     {
         printf("ERROR, ucitavanje liste u already in list");
@@ -302,7 +295,7 @@ int already_in_list(Position p, int number) {
 
     while (current != NULL)
     {
-        if (current->element == number) {
+        if (current->element == unos) {
             return 1;
         }
         current = current->next;
@@ -310,20 +303,20 @@ int already_in_list(Position p, int number) {
     return 0;
 }
 
-Position unija(Position* p, int arr_length) {
+Position unija(Position* p) {
     if (p == NULL)
     {
-        printf("ERROR, join without duplicates 1");
+        printf("ERROR, unija 1");
         return NULL;
     }
     Position newp = create_node();
     if (newp == NULL) {
-        printf("ERROR, join without duplicates 2");
+        printf("ERROR, unija 2");
         return NULL;
     }
     Position newNode;
     Position current = NULL;
-    for (int i = 0; i < arr_length; i++) {
+    for (int i = 0; i < 2; i++) {
         Position current = p[i]->next;
         while (current != NULL) {
             if (already_in_list(newp, current->element) == 0) {
@@ -338,7 +331,7 @@ Position unija(Position* p, int arr_length) {
     return newp;
 }
 
-Position presjek(Position* p, int arr_length) {
+Position presjek(Position* p) {
     if (p == NULL)
     {
         printf("ERROR, funkcija presjek");
@@ -351,7 +344,7 @@ Position presjek(Position* p, int arr_length) {
     }
     Position newNode;
     Position current = NULL;
-    for (int i = 1; i < arr_length; i++) {
+    for (int i = 1; i < 2; i++) {
         Position current = p[i]->next;
         while (current != NULL) {
             if (already_in_list(p[0], current->element) == 1 && already_in_list(newp, current->element) == 0) {
@@ -366,11 +359,18 @@ Position presjek(Position* p, int arr_length) {
     return newp;
 }
 
-Position read_sorted_list(FILE* file) {
+Position read_sorted_list() {
+    FILE* file = NULL;
+    printf("Unesi ime datoteke:\n ");
+    char filename[32] = "";
+    scanf(" %31s", filename);
+
+    fopen_s(&file, filename, "r");
     if (file == NULL) {
-        printf("Greska: datoteka nije otvorena!\n");
+        printf("Greska, datoteka nije otvorena!\n");
         return NULL;
     }
+
 
     Position p = create_node();
     if (p == NULL)
@@ -388,21 +388,7 @@ Position read_sorted_list(FILE* file) {
         }
         add_sorted_node(p, num, node);
     }
+    fclose(file);
 
     return p;
 }
-
-FILE* file_input() {
-    FILE* file = NULL;
-    printf("Unesi ime datoteke: ");
-    char fileName[40] = "";
-    scanf(" %40s", fileName);
-
-    file = fopen(fileName, "r");
-
-    if (file == NULL) {
-        printf("ERROR, otvaranje datoteke");
-    }
-    return file;
-}
-
